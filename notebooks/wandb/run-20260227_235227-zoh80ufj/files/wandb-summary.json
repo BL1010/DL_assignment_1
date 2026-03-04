@@ -1,0 +1,1 @@
+{"relu_zero_fraction":0.99999375,"grad_norm_layer1":0,"train_accuracy":0.10418518518518519,"_step":50903,"_runtime":561,"train_loss":2.3051530912293257,"final_test_accuracy":0.1042,"_timestamp":1.7722171036470861e+09,"epoch":20,"val_loss":2.305167553594395,"val_accuracy":0.10416666666666667,"_wandb":{"runtime":561}}
