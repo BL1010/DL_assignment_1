@@ -28,7 +28,7 @@ def parse_arguments():
 
     parser.add_argument('-wd', '--weight_decay', type=float, default=0.0)
     parser.add_argument('-nhl', '--num_layers', type=int, default=2)
-    parser.add_argument('-sz', '--hidden_size', type=int, default=128)
+    parser.add_argument('-sz', '--hidden_size', type=int, nargs='+', default=[128])
 
     parser.add_argument('-a', '--activation', type=str,
                         default="relu",
@@ -57,7 +57,7 @@ def compute_accuracy(model, X, y):
 
 def main():
     args = parse_arguments()
-    args.hidden_dims = [args.hidden_size] * args.num_layers
+    args.hidden_dims = args.hidden_size
 
     wandb.init(project=args.wandb_project,
                config=vars(args),

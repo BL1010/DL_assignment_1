@@ -29,7 +29,17 @@ class NeuralNetwork:
         }
         
         self.layers = [] 
-        dims = [args.input_dim]+ args.hidden_dims + [args.output_dim] 
+        input_dim = getattr(args,"input_dim",784) 
+        output_dim = getattr(args,"output_dim",10) 
+        
+        if hasattr(args,"hidden_dims"): 
+            hidden_dims = args.hidden_dims 
+        else: 
+            hidden_size = getattr(args,"hidden_size",128) 
+            num_layers = getattr(args,"num_layers",1) 
+            hidden_dims = [hidden_size]*num_layers
+        dims = [input_dim]+ hidden_dims + [output_dim] 
+        
         
         for i in range(len(dims)-2): 
             self.layers.append(
