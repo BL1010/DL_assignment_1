@@ -12,7 +12,6 @@ def parse_arguments():
     parser.add_argument("--dataset", type=str,
                         default="mnist",
                         choices=["mnist", "fashion-mnist"])
-    parser.add_argument("--threshold", type=float, default=0.5)
     return parser.parse_args()
 
 
@@ -21,12 +20,19 @@ def load_model(model_path):
     if model_path is None:
         return None
 
+    # ---------- HANDLE .NPY (GRADESCOPE DUMMY MODEL) ----------
     if model_path.endswith(".npy"):
 
         weights = np.load(model_path, allow_pickle=True)
 
-        if isinstance(weights, np.ndarray) and weights.shape == ():
-            weights = weights.item()
+        # unwrap numpy object array safely
+        if isinstance(weights, np.ndarray):
+            if weights.dtype == object:
+                weights = list(weights)
+            elif weights.shape == ():
+                weights = weights.item()
+
+        # now weights MUST be a list: [W1, b1, W2, b2, ...]
 
         input_dim = weights[0].shape[0]
         output_dim = weights[-2].shape[1]
@@ -39,6 +45,7 @@ def load_model(model_path):
             input_dim=input_dim,
             output_dim=output_dim,
             hidden_dims=hidden_dims,
+            num_layers=len(hidden_dims),
             activation="relu",
             loss="cross_entropy",
             optimizer="sgd",
@@ -57,6 +64,7 @@ def load_model(model_path):
 
         return model
 
+    # ---------- HANDLE PICKLE MODEL ----------
     else:
         with open(model_path, "rb") as f:
             model = pickle.load(f)
