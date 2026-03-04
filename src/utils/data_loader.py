@@ -7,10 +7,10 @@ def load_dataset(name: str):
     name = name.lower()
 
     if name == "mnist":
-        dataset = fetch_openml("mnist_784", version=1, as_frame=False)
+        dataset = fetch_openml("mnist_784", version=1, as_frame=False,parser='liac-arff')
 
     elif name == "fashion-mnist":
-        dataset = fetch_openml("Fashion-MNIST", version=1, as_frame=False)
+        dataset = fetch_openml("Fashion-MNIST", version=1, as_frame=False,parser = 'liac-arff')
 
     else:
         raise ValueError("Dataset must be 'mnist' or 'fashion-mnist'")

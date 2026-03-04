@@ -1,11 +1,8 @@
 import numpy as np
 from utils.data_loader import load_dataset
 import argparse
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
 import pickle
-import wandb
+from sklearn.metrics import confusion_matrix
 
 
 def parse_arguments():
@@ -14,6 +11,7 @@ def parse_arguments():
     parser.add_argument("--dataset", type=str,
                         default="mnist",
                         choices=["mnist", "fashion-mnist"])
+    parser.add_argument("--threshold", type=float, default=0.5)
     return parser.parse_args()
 
 
@@ -24,8 +22,6 @@ def load_model(model_path):
 
 
 def evaluate(model, dataset="mnist"):
-
-    wandb.init(project="assignment_folder", name="evaluation_run")
 
     X_train, X_test, y_train, y_test = load_dataset(dataset)
 
@@ -54,23 +50,14 @@ def evaluate(model, dataset="mnist"):
         f1_list.append(f1)
 
     results = {
-        "accuracy": accuracy,
-        "precision": np.mean(precision_list),
-        "recall": np.mean(recall_list),
-        "f1": np.mean(f1_list)
+        "accuracy": float(accuracy),
+        "precision": float(np.mean(precision_list)),
+        "recall": float(np.mean(recall_list)),
+        "f1": float(np.mean(f1_list))
     }
 
     for k, v in results.items():
         print(f"{k}: {v:.4f}")
-
-    wandb.log(results)
-
-    cm = confusion_matrix(y_test, preds)
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt="d")
-    wandb.log({"confusion_matrix": wandb.Image(plt)})
-
-    wandb.finish()
 
     return results
 
