@@ -23,7 +23,7 @@ class ReLU(Activation):
         A = np.maximum(0,x) 
         
         zero_fraction = np.mean(A == 0) 
-        wandb.log({"relu_zero_fraction":zero_fraction})
+        #wandb.log({"relu_zero_fraction":zero_fraction})
         return A
 
     def backward(self, x):

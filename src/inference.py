@@ -8,31 +8,38 @@ from ann.neural_network import NeuralNetwork
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run inference")
+
     parser.add_argument("--model_path", type=str, default=None)
-    parser.add_argument("--dataset", type=str,
-                        default="mnist",
-                        choices=["mnist", "fashion-mnist"])
+    parser.add_argument("--dataset", type=str, default="mnist")
+    parser.add_argument("--activation", type=str, default="relu")
+    parser.add_argument("--loss", type=str, default="cross_entropy")
+    parser.add_argument("--optimizer", type=str, default="sgd")
+    parser.add_argument("--learning_rate", type=float, default=0.01)
+    parser.add_argument("--weight_decay", type=float, default=0.0)
+    parser.add_argument("--weight_init", type=str, default="xavier")
+    parser.add_argument("--hidden_size", type=int, default=128)
+    parser.add_argument("--num_layers", type=int, default=1)
+
     return parser.parse_args()
 
 
 def load_model(model_path):
 
-    if model_path is None:
-        return None
-
-    # ---------- HANDLE .NPY (GRADESCOPE DUMMY MODEL) ----------
     if model_path.endswith(".npy"):
 
         weights = np.load(model_path, allow_pickle=True)
 
-        # unwrap numpy object array safely
-        if isinstance(weights, np.ndarray):
-            if weights.dtype == object:
-                weights = list(weights)
-            elif weights.shape == ():
-                weights = weights.item()
+        # handle 0-d array
+        if weights.shape == ():
+            weights = weights.item()
 
-        # now weights MUST be a list: [W1, b1, W2, b2, ...]
+        # if dict
+        if isinstance(weights, dict):
+            weights = list(weights.values())
+
+        # if object array
+        if isinstance(weights, np.ndarray):
+            weights = list(weights)
 
         input_dim = weights[0].shape[0]
         output_dim = weights[-2].shape[1]
@@ -45,7 +52,6 @@ def load_model(model_path):
             input_dim=input_dim,
             output_dim=output_dim,
             hidden_dims=hidden_dims,
-            num_layers=len(hidden_dims),
             activation="relu",
             loss="cross_entropy",
             optimizer="sgd",
@@ -64,11 +70,9 @@ def load_model(model_path):
 
         return model
 
-    # ---------- HANDLE PICKLE MODEL ----------
     else:
         with open(model_path, "rb") as f:
-            model = pickle.load(f)
-        return model
+            return pickle.load(f)
 
 
 def evaluate(model, dataset="mnist"):
@@ -80,30 +84,7 @@ def evaluate(model, dataset="mnist"):
 
     accuracy = np.mean(preds == y_test)
 
-    num_classes = 10
-    precision_list = []
-    recall_list = []
-    f1_list = []
-
-    for c in range(num_classes):
-        tp = np.sum((preds == c) & (y_test == c))
-        fp = np.sum((preds == c) & (y_test != c))
-        fn = np.sum((preds != c) & (y_test == c))
-
-        precision = tp / (tp + fp + 1e-9)
-        recall = tp / (tp + fn + 1e-9)
-        f1 = 2 * precision * recall / (precision + recall + 1e-9)
-
-        precision_list.append(precision)
-        recall_list.append(recall)
-        f1_list.append(f1)
-
-    return {
-        "accuracy": float(accuracy),
-        "precision": float(np.mean(precision_list)),
-        "recall": float(np.mean(recall_list)),
-        "f1": float(np.mean(f1_list))
-    }
+    return {"accuracy": float(accuracy)}
 
 
 def main():
