@@ -21,9 +21,12 @@ def load_model(model_path):
     if model_path is None:
         return None
 
-    # Handle Gradescope dummy .npy model
     if model_path.endswith(".npy"):
+
         weights = np.load(model_path, allow_pickle=True)
+
+        if isinstance(weights, np.ndarray) and weights.shape == ():
+            weights = weights.item()
 
         input_dim = weights[0].shape[0]
         output_dim = weights[-2].shape[1]
@@ -40,7 +43,8 @@ def load_model(model_path):
             loss="cross_entropy",
             optimizer="sgd",
             learning_rate=0.01,
-            weight_decay=0.0
+            weight_decay=0.0,
+            weight_init="xavier"
         )
 
         model = NeuralNetwork(args)
@@ -53,7 +57,6 @@ def load_model(model_path):
 
         return model
 
-    # Handle pickle models
     else:
         with open(model_path, "rb") as f:
             model = pickle.load(f)
@@ -62,7 +65,7 @@ def load_model(model_path):
 
 def evaluate(model, dataset="mnist"):
 
-    X_train, X_test, y_train, y_test = load_dataset(dataset)
+    _, X_test, _, y_test = load_dataset(dataset)
 
     logits = model.forward(X_test)
     preds = np.argmax(logits, axis=1)
@@ -75,7 +78,6 @@ def evaluate(model, dataset="mnist"):
     f1_list = []
 
     for c in range(num_classes):
-
         tp = np.sum((preds == c) & (y_test == c))
         fp = np.sum((preds == c) & (y_test != c))
         fn = np.sum((preds != c) & (y_test == c))
@@ -88,14 +90,12 @@ def evaluate(model, dataset="mnist"):
         recall_list.append(recall)
         f1_list.append(f1)
 
-    results = {
+    return {
         "accuracy": float(accuracy),
         "precision": float(np.mean(precision_list)),
         "recall": float(np.mean(recall_list)),
         "f1": float(np.mean(f1_list))
     }
-
-    return results
 
 
 def main():

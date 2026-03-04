@@ -114,7 +114,6 @@ def main():
             epoch_grad_norm_layer1 += grad_norm
             num_batches += 1
 
-            # SAFE gradient logging (no index crash)
             if global_step < 50:
                 log_dict = {"iteration": global_step}
                 max_neurons = min(5, first_layer.grad_W.shape[1])
