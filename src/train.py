@@ -5,7 +5,6 @@ Main Training Script
 import argparse
 import numpy as np
 import wandb
-import json
 import os
 import pickle
 
@@ -28,7 +27,11 @@ def parse_arguments():
 
     parser.add_argument('-wd', '--weight_decay', type=float, default=0.0)
     parser.add_argument('-nhl', '--num_layers', type=int, default=2)
-    parser.add_argument('-sz', '--hidden_size', type=int, nargs='+', default=[128])
+
+    parser.add_argument('-sz', '--hidden_size',
+                        type=int,
+                        nargs='+',
+                        default=[128])
 
     parser.add_argument('-a', '--activation', type=str,
                         default="relu",
@@ -40,7 +43,7 @@ def parse_arguments():
 
     parser.add_argument('-wi', '--weight_init', type=str,
                         default="xavier",
-                        choices=['random', 'xavier','zeros'])
+                        choices=['random', 'xavier', 'zeros'])
 
     parser.add_argument('--wandb_project', type=str, default="assignment_folder")
     parser.add_argument('--experiment_group', type=str, default="manual_runs")
@@ -75,12 +78,8 @@ def main():
 
     num_classes = 10
 
-    if args.loss == "cross_entropy":
-        y_train = np.eye(num_classes)[y_train_raw]
-        y_val = np.eye(num_classes)[y_val_raw]
-    else:
-        y_train = np.eye(num_classes)[y_train_raw]
-        y_val = np.eye(num_classes)[y_val_raw]
+    y_train = np.eye(num_classes)[y_train_raw]
+    y_val = np.eye(num_classes)[y_val_raw]
 
     args.input_dim = X_train.shape[1]
     args.output_dim = num_classes
@@ -90,44 +89,41 @@ def main():
     n_samples = X_train.shape[0]
     best_val_acc = 0.0
     best_model = None
-    
-    global_step = 0 
+    global_step = 0
 
     for epoch in range(args.epochs):
 
         perm = np.random.permutation(n_samples)
         X_train = X_train[perm]
         y_train = y_train[perm]
-        y_train_raw = y_train_raw[perm]   # FIXED
-        epoch_grad_norm_layer1 = 0 
+        y_train_raw = y_train_raw[perm]
+
+        epoch_grad_norm_layer1 = 0
         num_batches = 0
 
         for i in range(0, n_samples, args.batch_size):
-            X_batch = X_train[i:i+args.batch_size]
-            y_batch = y_train[i:i+args.batch_size]
+            X_batch = X_train[i:i + args.batch_size]
+            y_batch = y_train[i:i + args.batch_size]
 
             logits = model.forward(X_batch)
             model.backward(y_batch, logits)
-            #code snippet for logging of gradient of first hidden layers.
-            first_layer = model.layers[0] 
+
+            first_layer = model.layers[0]
             grad_norm = np.linalg.norm(first_layer.grad_W)
-            
-            epoch_grad_norm_layer1+= grad_norm
-            num_batches+=1
-            #-------------------------------------
-            # ADDED: Log gradients of 5 neurons 
-            #-----------------------------------
-            if global_step < 50: 
-                wandb.log({
-                    "grad_neuron_0": np.mean(first_layer.grad_W[:,0]),
-                    "grad_neuron_1": np.mean(first_layer.grad_W[:,1]), 
-                    "grad_neuron_2": np.mean(first_layer.grad_W[:,2]),
-                    "grad_neuron_3": np.mean(first_layer.grad_W[:,3]),
-                    "grad_neuron_4": np.mean(first_layer.grad_W[:,4]), 
-                    "iteration": global_step
-                })
+
+            epoch_grad_norm_layer1 += grad_norm
+            num_batches += 1
+
+            # SAFE gradient logging (no index crash)
+            if global_step < 50:
+                log_dict = {"iteration": global_step}
+                max_neurons = min(5, first_layer.grad_W.shape[1])
+                for j in range(max_neurons):
+                    log_dict[f"grad_neuron_{j}"] = np.mean(first_layer.grad_W[:, j])
+                wandb.log(log_dict)
+
             model.update_weights()
-            global_step+=1
+            global_step += 1
 
         train_logits = model.forward(X_train)
         val_logits = model.forward(X_val)
@@ -137,9 +133,6 @@ def main():
 
         train_acc = compute_accuracy(model, X_train, y_train_raw)
         val_acc = compute_accuracy(model, X_val, y_val_raw)
-        
-        
-
 
         wandb.log({
             "epoch": epoch + 1,
@@ -147,7 +140,7 @@ def main():
             "val_loss": float(val_loss),
             "train_accuracy": float(train_acc),
             "val_accuracy": float(val_acc),
-            "grad_norm_layer1": epoch_grad_norm_layer1/num_batches
+            "grad_norm_layer1": epoch_grad_norm_layer1 / max(1, num_batches)
         })
 
         if val_acc > best_val_acc:
