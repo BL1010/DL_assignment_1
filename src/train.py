@@ -47,7 +47,10 @@ def parse_arguments():
 
     parser.add_argument('--wandb_project', type=str, default="assignment_folder")
     parser.add_argument('--experiment_group', type=str, default="manual_runs")
-    parser.add_argument('--model_save_path', type=str, default="models/model.pkl")
+
+    parser.add_argument('--model_save_path',
+                        type=str,
+                        default="src/best_model.npy")
 
     return parser.parse_args()
 
@@ -60,11 +63,14 @@ def compute_accuracy(model, X, y):
 
 def main():
     args = parse_arguments()
+
     args.hidden_dims = args.hidden_size
 
-    wandb.init(project=args.wandb_project,
-               config=vars(args),
-               group=args.experiment_group)
+    wandb.init(
+        project=args.wandb_project,
+        config=vars(args),
+        group=args.experiment_group
+    )
 
     X_train_full, X_test, y_train_full_raw, y_test_raw = load_dataset(args.dataset)
 
@@ -102,13 +108,16 @@ def main():
         num_batches = 0
 
         for i in range(0, n_samples, args.batch_size):
+
             X_batch = X_train[i:i + args.batch_size]
             y_batch = y_train[i:i + args.batch_size]
 
             logits = model.forward(X_batch)
+
             model.backward(y_batch, logits)
 
             first_layer = model.layers[0]
+
             grad_norm = np.linalg.norm(first_layer.grad_W)
 
             epoch_grad_norm_layer1 += grad_norm
@@ -116,12 +125,16 @@ def main():
 
             if global_step < 50:
                 log_dict = {"iteration": global_step}
+
                 max_neurons = min(5, first_layer.grad_W.shape[1])
+
                 for j in range(max_neurons):
                     log_dict[f"grad_neuron_{j}"] = np.mean(first_layer.grad_W[:, j])
+
                 wandb.log(log_dict)
 
             model.update_weights()
+
             global_step += 1
 
         train_logits = model.forward(X_train)
@@ -143,22 +156,31 @@ def main():
         })
 
         if val_acc > best_val_acc:
+
             best_val_acc = val_acc
+
             best_model = pickle.dumps(model)
-            
+
+            weights = model.get_weights()
+
+            os.makedirs(os.path.dirname(args.model_save_path), exist_ok=True)
+
             np.save(
-                "src/best_model.npy",
-                model.get_weights(), 
+                args.model_save_path,
+                np.array(weights, dtype=object),
                 allow_pickle=True
             )
 
     os.makedirs(os.path.dirname(args.model_save_path), exist_ok=True)
 
-    with open(args.model_save_path, "wb") as f:
+    with open("models/model.pkl", "wb") as f:
         f.write(best_model)
 
     test_acc = compute_accuracy(model, X_test, y_test_raw)
-    wandb.log({"final_test_accuracy": float(test_acc)})
+
+    wandb.log({
+        "final_test_accuracy": float(test_acc)
+    })
 
     wandb.finish()
 

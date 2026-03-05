@@ -2,8 +2,8 @@ import numpy as np
 import argparse
 
 from argparse import Namespace
-from src.utils.data_loader import load_dataset
-from src.ann.neural_network import NeuralNetwork
+from utils.data_loader import load_dataset
+from ann.neural_network import NeuralNetwork
 
 
 def parse_arguments():
