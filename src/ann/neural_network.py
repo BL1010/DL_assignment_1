@@ -96,10 +96,20 @@ class NeuralNetwork:
 
     # ✅ REQUIRED FOR GRADER
     def set_weights(self, weights):
+        
+        if isinstance(weights,np.ndarray): 
+            weights  = weights.tolist() 
+            
+        if isinstance(weights,dict): 
+            weights = list(weights.values()) 
+            
         layer_idx = 0
         for i in range(0, len(weights), 2):
-            self.layers[layer_idx].W = weights[i]
-            self.layers[layer_idx].b = weights[i + 1]
+            
+            W = weights[i] 
+            b = weights[i+1]
+            self.layers[layer_idx].W = np.array(W)
+            self.layers[layer_idx].b = np.array(b)
             layer_idx += 1
 
     # ✅ REQUIRED FOR SAVING BEST MODEL

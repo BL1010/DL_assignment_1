@@ -167,11 +167,11 @@ def main():
 
             np.save(
                 args.model_save_path,
-                np.array(weights, dtype=object),
+                {"weights": weights},
                 allow_pickle=True
             )
 
-    os.makedirs(os.path.dirname(args.model_save_path), exist_ok=True)
+    os.makedirs("models", exist_ok=True)
 
     with open("models/model.pkl", "wb") as f:
         f.write(best_model)
