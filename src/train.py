@@ -145,6 +145,12 @@ def main():
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             best_model = pickle.dumps(model)
+            
+            np.save(
+                "src/best_model.npy",
+                model.get_weights(), 
+                allow_pickle=True
+            )
 
     os.makedirs(os.path.dirname(args.model_save_path), exist_ok=True)
 

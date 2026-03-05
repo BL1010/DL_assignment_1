@@ -26,7 +26,8 @@ def load_dataset(name="mnist"):
     y = dataset.target.astype(np.int64)
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
+        X,
+        y,
         test_size=10000,
         random_state=42,
         stratify=y
