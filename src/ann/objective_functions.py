@@ -1,37 +1,50 @@
+from abc import ABC, abstractmethod
 import numpy as np
 
 
-class CrossEntropy:
+class Objective(ABC):
 
-    def softmax(self, x):
-        e = np.exp(x - np.max(x, axis=1, keepdims=True))
-        return e / np.sum(e, axis=1, keepdims=True)
+    @abstractmethod
+    def forward(self, y_true, y_pred) -> float:
+        pass
+
+    @abstractmethod
+    def backward(self, y_true, y_pred):
+        pass
+
+
+# -----------------------------------
+# Cross Entropy (Softmax compatible)
+# -----------------------------------
+class CrossEntropy(Objective):
 
     def forward(self, y_true, logits):
-
-        self.y_true = y_true
-        self.probs = self.softmax(logits)
-
-        loss = -np.sum(y_true * np.log(self.probs + 1e-9)) / y_true.shape[0]
-
+        epsilon = 1e-9
+        shift = logits - np.max(logits,axis = 1,keepdims = True)
+        exp_vals = np.exp(shift)
+        probs = exp_vals / np.sum(exp_vals,axis = 1,keepdims = True)
+        m = y_true.shape[0] 
+        
+        loss = -np.sum(y_true*np.log(probs+epsilon))/m 
         return loss
 
     def backward(self, y_true, logits):
+        shift = logits- np.max(logits,axis=1,keepdims=True)
+        exp_vals = np.exp(shift) 
+        probs= exp_vals / np.sum(exp_vals,axis = 1, keepdims = True)
+        m = y_true.shape[0]
+        return (probs - y_true)/m
 
-        probs = self.softmax(logits)
 
-        return (probs - y_true) / y_true.shape[0]
-
-
-class MSE:
+# -----------------------------------
+# Mean Squared Error
+# -----------------------------------
+class MSE(Objective):
 
     def forward(self, y_true, y_pred):
-
-        self.y_true = y_true
-        self.y_pred = y_pred
-
-        return np.mean((y_true - y_pred) ** 2)
+        m = y_true.shape[0]
+        return np.sum((y_pred - y_true) ** 2) / (2 * m)
 
     def backward(self, y_true, y_pred):
-
-        return 2 * (y_pred - y_true) / y_true.shape[0]
+        m = y_true.shape[0]
+        return (y_pred - y_true) / m

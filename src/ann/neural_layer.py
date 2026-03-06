@@ -1,43 +1,69 @@
+from abc import ABC, abstractmethod
 import numpy as np
 
 
-class Dense:
+class Layer(ABC):
 
-    def __init__(self, in_dim, out_dim, activation=None, weight_init="xavier"):
+    @abstractmethod
+    def forward(self, X):
+        pass
 
-        if weight_init == "xavier":
-            limit = np.sqrt(6 / (in_dim + out_dim))
-            self.W = np.random.uniform(-limit, limit, (in_dim, out_dim))
+    @abstractmethod
+    def backward(self, dA):
+        pass
 
-        elif weight_init == "zeros":
-            self.W = np.zeros((in_dim, out_dim))
 
+class Dense(Layer):
+
+    def __init__(self,
+                 input_dim,
+                 output_dim,
+                 activation=None,
+                 weight_init: str = "xavier"):
+        
+        self.input_dim = input_dim 
+        self.output_dim = output_dim 
+        self.activation = activation 
+        if weight_init == 'xavier': 
+            self.W = np.random.randn(input_dim,output_dim)*np.sqrt(1/input_dim)
+        elif weight_init == 'random': 
+            self.W = np.random.randn(input_dim,output_dim)*0.01
+        elif weight_init == "zeros": 
+            self.W = np.zeros((input_dim,output_dim))
+        else: 
+            raise ValueError("Initialization not implemented")
+        
+        self.b = np.zeros((1,output_dim)) 
+        
+        self.X = None 
+        self.Z = None 
+        self.grad_W = None 
+        self.grad_b = None
+
+
+
+    def forward(self, X):
+
+        self.X = X
+        self.Z = X @ self.W + self.b
+
+        if self.activation: 
+            return self.activation.forward(self.Z)
+        return self.Z
+
+    def backward(self, dA):
+
+        m = self.X.shape[0]
+
+        if self.activation:
+            dZ = dA * self.activation.backward(self.Z)
         else:
-            self.W = np.random.randn(in_dim, out_dim) * 0.01
+            dZ = dA
 
-        self.b = np.zeros((1, out_dim))
+        m = self.X.shape[0]
+        self.grad_W = self.X.T @ dZ
+        self.grad_b = np.sum(dZ, axis=0, keepdims=True) 
 
-        self.activation = activation
+        return dZ @ self.W.T
 
-    def forward(self, x):
-
-        self.x = x
-        z = x @ self.W + self.b
-
-        if self.activation is not None:
-            self.z = z
-            return self.activation.forward(z)
-
-        return z
-
-    def backward(self, grad):
-
-        if self.activation is not None:
-            grad = self.activation.backward(grad)
-
-        self.grad_W = self.x.T @ grad / self.x.shape[0]
-        self.grad_b = np.mean(grad, axis=0, keepdims=True)
-
-        dx = grad @ self.W.T
-
-        return dx
+       
