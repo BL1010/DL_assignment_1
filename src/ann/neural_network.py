@@ -109,7 +109,15 @@ class NeuralNetwork:
 
         for layer in reversed(self.layers):
             dA = layer.backward(dA)
-        return dA
+        
+        grads_W = [] 
+        grads_b = [] 
+        
+        for layer in self.layers: 
+            grads_W.append(layer.grad_W) 
+            grads_b.append(layer.grad_b) 
+            
+        return grads_W, grads_b 
 
     # -----------------------------
     # Update Parameters

@@ -29,13 +29,13 @@ def load_model(model_path):
 
     if isinstance(weights, np.ndarray):
         weights = weights.item()
-    W_keys = sorted([k for k in weights if k.startswith("W")])
+    W_keys = sorted([k for k in weights.keys() if k.startswith("W")])
     input_dim = weights[W_keys[0]].shape[0]
     output_dim = weights[W_keys[-1]].shape[1]
 
     hidden_dims = []
-    for i in range(0, len(weights) - 2, 2):
-        hidden_dims.append(weights[i].shape[1])
+    for i in range(len(W_keys)-1):
+        hidden_dims.append(weights[f"W{i}"].shape[1])
 
     args = Namespace(
         input_dim=input_dim,
