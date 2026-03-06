@@ -97,11 +97,12 @@ class NeuralNetwork:
 
     def get_weights(self):
 
-        weights = []
+        weights = {}
 
-        for layer in self.layers:
-            weights.append(layer.W.copy())
-            weights.append(layer.b.copy())
+        for i, layer in enumerate(self.layers):
+            if hasattr(layer, "W"):
+                weights[f"W{i+1}"] = layer.W
+                weights[f"b{i+1}"] = layer.b
 
         return weights
 

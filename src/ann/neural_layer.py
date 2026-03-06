@@ -8,12 +8,14 @@ class Dense:
         if weight_init == "xavier":
             limit = np.sqrt(6 / (in_dim + out_dim))
             self.W = np.random.uniform(-limit, limit, (in_dim, out_dim))
+
         elif weight_init == "zeros":
             self.W = np.zeros((in_dim, out_dim))
+
         else:
             self.W = np.random.randn(in_dim, out_dim) * 0.01
 
-        self.b = np.zeros(out_dim)
+        self.b = np.zeros((1, out_dim))
 
         self.activation = activation
 
@@ -34,7 +36,7 @@ class Dense:
             grad = self.activation.backward(grad)
 
         self.grad_W = self.x.T @ grad / self.x.shape[0]
-        self.grad_b = np.mean(grad, axis=0)
+        self.grad_b = np.mean(grad, axis=0, keepdims=True)
 
         dx = grad @ self.W.T
 
