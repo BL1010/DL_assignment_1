@@ -28,10 +28,10 @@ def load_model(model_path):
     weights = np.load(model_path, allow_pickle=True)
 
     if isinstance(weights, np.ndarray):
-        weights = list(weights)
-
-    input_dim = weights[0].shape[0]
-    output_dim = weights[-2].shape[1]
+        weights = weights.item()
+    W_keys = sorted([k for k in weights if k.startswith("W")])
+    input_dim = weights[W_keys[0]].shape[0]
+    output_dim = weights[W_keys[-1]].shape[1]
 
     hidden_dims = []
     for i in range(0, len(weights) - 2, 2):

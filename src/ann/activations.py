@@ -56,18 +56,3 @@ class Tanh(Activation):
         return 1 - t ** 2
 
 
-# -------------------------
-# Softmax (Batch Safe)
-# -------------------------
-class Softmax(Activation):
-
-    def function(self, x: np.ndarray) -> np.ndarray:
-        shifted_x = x - np.max(x, axis=1, keepdims=True)
-        exp_vals = np.exp(shifted_x)
-        return exp_vals / np.sum(exp_vals, axis=1, keepdims=True)
-
-    def derivative(self, x: np.ndarray) -> np.ndarray:
-        raise NotImplementedError(
-            "Do not use Softmax derivative explicitly. "
-            "Use CrossEntropy + Softmax combined gradient: y_pred - y_true."
-        )

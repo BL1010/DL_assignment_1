@@ -61,8 +61,8 @@ class Dense(Layer):
             dZ = dA
 
         m = self.X.shape[0]
-        self.grad_W = self.X.T @ dZ
-        self.grad_b = np.sum(dZ, axis=0, keepdims=True) 
+        self.grad_W = self.X.T @ dZ /m 
+        self.grad_b = np.sum(dZ, axis=0, keepdims=True) / m 
 
         return dZ @ self.W.T
 

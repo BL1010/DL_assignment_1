@@ -44,8 +44,13 @@ class NeuralNetwork:
         if hasattr(args, "hidden_dims"):
             hidden_dims = args.hidden_dims
         else:
-            hidden_size = getattr(args, "hidden_size", 128)
-            num_layers = getattr(args, "num_layers", 1)
+            hidden_size = getattr(args, "hidden_size", [128])
+            num_layers = getattr(args, "num_layers", len(hidden_size))
+            
+            if isinstance(hidden_size,list): 
+                hidden_dims = hidden_size
+            else: 
+                hidden_dims = [hidden_size]+num_layers
             hidden_dims = [hidden_size] * num_layers
 
         dims = [input_dim] + hidden_dims + [output_dim]
@@ -94,20 +99,19 @@ class NeuralNetwork:
 
         self.optimizer.update(params, grads)
 
-    # ✅ REQUIRED FOR GRADER
-    def set_weights(self, weight_dict):
-        
+    def set_weights(self,weight_dict): 
         if isinstance(weight_dict,np.ndarray): 
-            weight_dict = weight_dict.item()
+            weight_dict = weight_dict.item() 
             
         for i,layer in enumerate(self.layers): 
+            
             w_key = f"W{i}"
-            b_key = f"b{i}" 
+            b_key= f"b{i}"
             
             if w_key in weight_dict: 
                 layer.W = np.array(weight_dict[w_key])
-            
-            if b_key in self.weight_decay: 
+                
+            if b_key in weight_dict: 
                 layer.b = np.array(weight_dict[b_key])
 
     # ✅ REQUIRED FOR SAVING BEST MODEL
