@@ -117,5 +117,5 @@ class NeuralNetwork:
         weights = []
         for layer in self.layers:
             weights.append(layer.W)
-            weights.append(layer.b)
+            weights.append(layer.b.reshape(-1))
         return weights
