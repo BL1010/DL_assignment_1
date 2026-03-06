@@ -1,73 +1,45 @@
-from abc import ABC, abstractmethod
 import numpy as np
-import wandb
+from abc import ABC, abstractmethod
 
 
 class Activation(ABC):
+
     @abstractmethod
     def forward(self, x):
         pass
 
     @abstractmethod
-    def backward(self, x):
+    def backward(self, grad):
         pass
 
 
-# -------------------------
-# ReLU
-# -------------------------
 class ReLU(Activation):
 
-    def forward(self, x): 
+    def forward(self, x):
         self.x = x
-        A = np.maximum(0,x) 
-        
-        zero_fraction = np.mean(A == 0) 
-        #wandb.log({"relu_zero_fraction":zero_fraction})
-        return A
+        return np.maximum(0, x)
 
-    def backward(self, x):
-        return (x > 0).astype(float)
+    def backward(self, grad):
+        dx = grad.copy()
+        dx[self.x <= 0] = 0
+        return dx
 
 
-# -------------------------
-# Sigmoid
-# -------------------------
 class Sigmoid(Activation):
 
     def forward(self, x):
-        return 1 / (1 + np.exp(-x))
+        self.out = 1 / (1 + np.exp(-x))
+        return self.out
 
-    def backward(self, x):
-        s = self.forward(x)
-        return s * (1 - s)
+    def backward(self, grad):
+        return grad * self.out * (1 - self.out)
 
 
-# -------------------------
-# Tanh
-# -------------------------
 class Tanh(Activation):
 
     def forward(self, x):
-        return np.tanh(x)
+        self.out = np.tanh(x)
+        return self.out
 
-    def backward(self, x):
-        t = np.tanh(x)
-        return 1 - t ** 2
-
-
-# -------------------------
-# Softmax (Batch Safe)
-# -------------------------
-class Softmax(Activation):
-
-    def function(self, x: np.ndarray) -> np.ndarray:
-        shifted_x = x - np.max(x, axis=1, keepdims=True)
-        exp_vals = np.exp(shifted_x)
-        return exp_vals / np.sum(exp_vals, axis=1, keepdims=True)
-
-    def derivative(self, x: np.ndarray) -> np.ndarray:
-        raise NotImplementedError(
-            "Do not use Softmax derivative explicitly. "
-            "Use CrossEntropy + Softmax combined gradient: y_pred - y_true."
-        )
+    def backward(self, grad):
+        return grad * (1 - self.out ** 2)
