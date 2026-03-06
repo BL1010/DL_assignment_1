@@ -33,7 +33,7 @@ class CrossEntropy(Objective):
         exp_vals = np.exp(shift) 
         probs= exp_vals / np.sum(exp_vals,axis = 1, keepdims = True)
         m = y_true.shape[0]
-        return (probs - y_true)/m
+        return (probs - y_true)
 
 
 # -----------------------------------
