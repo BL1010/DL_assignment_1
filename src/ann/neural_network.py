@@ -95,27 +95,26 @@ class NeuralNetwork:
         self.optimizer.update(params, grads)
 
     # ✅ REQUIRED FOR GRADER
-    def set_weights(self, weights):
+    def set_weights(self, weight_dict):
         
-        if isinstance(weights,np.ndarray): 
-            weights  = weights.tolist() 
+        if isinstance(weight_dict,np.ndarray): 
+            weight_dict = weight_dict.item()
             
-        if isinstance(weights,dict): 
-            weights = list(weights.values()) 
+        for i,layer in enumerate(self.layers): 
+            w_key = f"W{i}"
+            b_key = f"b{i}" 
             
-        layer_idx = 0
-        for i in range(0, len(weights), 2):
+            if w_key in weight_dict: 
+                layer.W = np.array(weight_dict[w_key])
             
-            W = weights[i] 
-            b = weights[i+1]
-            self.layers[layer_idx].W = np.array(W)
-            self.layers[layer_idx].b = np.array(b)
-            layer_idx += 1
+            if b_key in self.weight_decay: 
+                layer.b = np.array(weight_dict[b_key])
 
     # ✅ REQUIRED FOR SAVING BEST MODEL
     def get_weights(self):
-        weights = []
-        for layer in self.layers:
-            weights.append(layer.W)
-            weights.append(layer.b.reshape(-1))
+        weights = {}
+        for i,layer in enumerate(self.layers):
+            weights[f"W{i}"]= layer.W.copy()
+            weights[f"b{i}"]= layer.b.copy() 
+        
         return weights

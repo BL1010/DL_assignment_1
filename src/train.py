@@ -167,7 +167,7 @@ def main():
 
             np.save(
                 args.model_save_path,
-                np.array(weights,dtype = object),
+                weights,
                 allow_pickle=True
             )
 
