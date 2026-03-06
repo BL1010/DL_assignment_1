@@ -46,19 +46,25 @@ class NeuralNetwork:
         # Robust hidden layer handling
         # -----------------------------
 
-        hidden_size = getattr(args, "hidden_size", 128)
-        num_layers = getattr(args, "num_layers", 1)
 
-        if isinstance(hidden_size, list):
-            hidden_dims = hidden_size
-        elif isinstance(hidden_size, int):
-            hidden_dims = [hidden_size] * num_layers
-        else:
-            hidden_dims = [128] * num_layers
+        hidden_dims = getattr(args,"hidden_dims",None)
+        
+        if hidden_dims is None: 
+            hidden_size = getattr(args, "hidden_size", 128)
+            num_layers = getattr(args, "num_layers", 1)
+            
+
+            if isinstance(hidden_size, list):
+                hidden_dims = hidden_size
+            elif isinstance(hidden_size, int):
+                hidden_dims = [hidden_size] * num_layers
+            else:
+                hidden_dims = [128] * num_layers
 
         dims = [input_dim] + hidden_dims + [output_dim]
 
         # -----------------------------
+        
         # Create hidden layers
         # -----------------------------
 

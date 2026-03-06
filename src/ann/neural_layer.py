@@ -25,7 +25,7 @@ class Dense(Layer):
         self.output_dim = output_dim 
         self.activation = activation 
         if weight_init == 'xavier': 
-            self.W = np.random.randn(input_dim,output_dim)*np.sqrt(1/input_dim)
+            self.W = np.random.randn(input_dim,output_dim)*np.sqrt(2/(input_dim+output_dim))
         elif weight_init == 'random': 
             self.W = np.random.randn(input_dim,output_dim)*0.01
         elif weight_init == "zeros": 
@@ -48,17 +48,17 @@ class Dense(Layer):
         self.Z = X @ self.W + self.b
 
         if self.activation: 
-            return self.activation.forward(self.Z)
+            self.A  = self.activation.forward(self.Z)
+            return self.A
+        self.A= self.Z 
         return self.Z
 
     def backward(self, dA):
-
-        m = self.X.shape[0]
-
-        if self.activation:
-            dZ = dA * self.activation.backward(self.Z)
-        else:
-            dZ = dA
+        
+        if self.activation is not None: 
+            dZ = dA * self.activation.backward(self.Z) 
+        else: 
+            dZ = dA 
 
         m = self.X.shape[0]
         self.grad_W = self.X.T @ dZ /m 
