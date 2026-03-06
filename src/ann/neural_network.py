@@ -109,6 +109,7 @@ class NeuralNetwork:
 
         for layer in reversed(self.layers):
             dA = layer.backward(dA)
+        return dA
 
     # -----------------------------
     # Update Parameters
