@@ -7,6 +7,7 @@ import numpy as np
 import wandb
 import os
 import pickle
+import yaml
 
 from sklearn.model_selection import train_test_split
 from utils.data_loader import load_dataset
@@ -15,6 +16,8 @@ from ann.neural_network import NeuralNetwork
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Train a neural network')
+
+    parser.add_argument('--config', type=str, default=None)
 
     parser.add_argument('-d', '--dataset', type=str, default="mnist")
     parser.add_argument('-e', '--epochs', type=int, default=10)
@@ -52,7 +55,16 @@ def parse_arguments():
                         type=str,
                         default="src/best_model.npy")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.config is not None:
+        with open(args.config) as f:
+            config = yaml.safe_load(f)
+
+        for key, value in config.items():
+            setattr(args, key, value)
+
+    return args
 
 
 def compute_accuracy(model, X, y):
