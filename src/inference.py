@@ -58,9 +58,15 @@ def load_model(model_path):
 def evaluate(model, dataset="mnist"):
 
     _, X_test, _, y_test = load_dataset(dataset)
+    
+    if len(y_test.shape) > 1: 
+        y_test = np.argmax(y_test,axis = 1)
 
     logits = model.forward(X_test)
-    preds = np.argmax(logits, axis=1)
+    shift = logits - np.max(logits,axis =1, keepdims = True) 
+    probs = np.exp(shift) / np.sum(np.exp(shift),axis =1,keepdims = True)
+    
+    preds = np.argmax(probs, axis=1)
 
     accuracy = np.mean(preds == y_test)
 
