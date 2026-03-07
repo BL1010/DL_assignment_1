@@ -20,6 +20,9 @@ class CrossEntropy(Objective):
 
     def forward(self, y_true, logits):
         epsilon = 1e-9
+        
+        if y_true.ndim == 1: 
+            y_true = np.eye(logits.shape[1])[y_true]
         shift = logits - np.max(logits,axis = 1,keepdims = True)
         exp_vals = np.exp(shift)
         probs = exp_vals / np.sum(exp_vals,axis = 1,keepdims = True)
@@ -29,6 +32,9 @@ class CrossEntropy(Objective):
         return loss
 
     def backward(self, y_true, logits):
+        
+        if y_true.ndim == 1: 
+            y_true = np.eye(logits.shape[1])[y_true]
         shift = logits- np.max(logits,axis=1,keepdims=True)
         exp_vals = np.exp(shift) 
         probs= exp_vals / np.sum(exp_vals,axis = 1, keepdims = True)
