@@ -1,9 +1,11 @@
 import numpy as np
 import argparse
+import wandb
 
 from argparse import Namespace
 from utils.data_loader import load_dataset
 from ann.neural_network import NeuralNetwork
+
 
 
 def parse_arguments():
@@ -89,21 +91,47 @@ def evaluate(model, dataset="mnist"):
         f1 = 2 * precision * recall / (precision + recall + 1e-9)
         f1_scores.append(f1)
 
-    return {
+    metrics =  {
         "accuracy": float(accuracy),
         "f1": float(np.mean(f1_scores))
     }
+    return metrics, preds, y_test, X_test
 
 
 def main():
 
     args = parse_arguments()
+    wandb.init(project="mnist-error-analysis",config=vars(args))
 
     model = load_model(args.model_path)
 
-    metrics = evaluate(model, args.dataset)
+    metrics, preds, y_test, X_test = evaluate(model, args.dataset)
 
     print(metrics)
+    wandb.log(metrics) 
+    
+    #confusion matrix 
+    wandb.log({
+        "confusion_matrix": wandb.plot.confusion_matrix(
+            probs = None, 
+            y_true = y_test , 
+            preds = preds, 
+            class_names=[str(i) for i in range(10)]
+        )
+    })
+    
+    #creative visualization 
+    mis_idx = np.where(preds!=y_test)[0][:20] 
+    
+    mis_images = [] 
+    for i in mis_idx: 
+        img = X_test[i].reshape(28,28) 
+        mis_images.append(
+            wandb.Image(img,caption = f"True:{y_test[i]} Pred:{preds[i]}")
+            
+        )
+    wandb.log({"Misclassified_examples": mis_images})
+    
 
 
 if __name__ == "__main__":
