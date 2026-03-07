@@ -56,7 +56,7 @@ class Dense(Layer):
     def backward(self, dA):
         
         if self.activation is not None: 
-            dZ = dA * self.activation.backward(self.A) 
+            dZ = dA * self.activation.backward(self.Z) 
         else: 
             dZ = dA 
 

@@ -23,11 +23,13 @@ class ReLU(Activation):
         A = np.maximum(0,x) 
         
         zero_fraction = np.mean(A == 0) 
-        #wandb.log({"relu_zero_fraction":zero_fraction})
+        
         return A
 
     def backward(self, x):
-        return (x > 0).astype(float)
+        grad = np.zeros_like(x)
+        grad[x>0] = 1 
+        return grad 
 
 
 # -------------------------
@@ -36,7 +38,8 @@ class ReLU(Activation):
 class Sigmoid(Activation):
 
     def forward(self, x):
-        return 1 / (1 + np.exp(-x))
+        self.a =  1 / (1 + np.exp(-x))
+        return self.a
 
     def backward(self, x):
         s = self.forward(x)
@@ -49,7 +52,8 @@ class Sigmoid(Activation):
 class Tanh(Activation):
 
     def forward(self, x):
-        return np.tanh(x)
+        self.a = np.tanh(x)
+        return self.a
 
     def backward(self, x):
         t = np.tanh(x)
