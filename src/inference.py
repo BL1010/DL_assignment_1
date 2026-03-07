@@ -29,12 +29,16 @@ def load_model(model_path):
 
     if isinstance(weights, np.ndarray):
         weights = weights.item()
-    W_keys = sorted([k for k in weights.keys() if k.startswith("W")])
+
+    # get weight keys in order
+    W_keys = sorted([k for k in weights.keys() if k.startswith("W")],
+                    key=lambda x: int(x[1:]))
+
     input_dim = weights[W_keys[0]].shape[0]
     output_dim = weights[W_keys[-1]].shape[1]
 
     hidden_dims = []
-    for i in range(len(W_keys)-1):
+    for i in range(len(W_keys) - 1):
         hidden_dims.append(weights[f"W{i}"].shape[1])
 
     args = Namespace(
@@ -58,19 +62,19 @@ def load_model(model_path):
 def evaluate(model, dataset="mnist"):
 
     _, X_test, _, y_test = load_dataset(dataset)
-    
-    if len(y_test.shape) > 1: 
-        y_test = np.argmax(y_test,axis = 1)
+
+    # convert one-hot labels to class indices if needed
+    if y_test.ndim > 1:
+        y_test = np.argmax(y_test, axis=1)
 
     logits = model.forward(X_test)
-    shift = logits - np.max(logits,axis =1, keepdims = True) 
-    probs = np.exp(shift) / np.sum(np.exp(shift),axis =1,keepdims = True)
-    
-    preds = np.argmax(probs, axis=1)
+
+    # argmax of logits is same as argmax of softmax
+    preds = np.argmax(logits, axis=1)
 
     accuracy = np.mean(preds == y_test)
 
-    num_classes = 10
+    num_classes = len(np.unique(y_test))
     f1_scores = []
 
     for c in range(num_classes):
